@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acoustic Pest Detection & Classification</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 40px 0;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background-color: #f8f9ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background-color: #f0f2ff;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-area {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .results-area.show {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .feature {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .file-info {
+            background: #f0f2ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-volume-up"></i> Acoustic Pest Detection</h1>
+            <p>Advanced AI-powered pest classification through sound analysis</p>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2><i class="fas fa-upload"></i> Upload Audio File</h2>
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <p>Drag and drop your audio file here or click to browse</p>
+                    <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+                        Supported formats: WAV, MP3, M4A
+                    </p>
+                </div>
+                <input type="file" id="audioFile" accept="audio/*" style="display: none;">
+                
+                <div id="fileInfo" class="file-info" style="display: none;">
+                    <h4>File Information:</h4>
+                    <p id="fileName"></p>
+                    <p id="fileSize"></p>
+                    <audio id="audioPlayer" class="audio-player" controls style="display: none;"></audio>
+                </div>
+
+                <button class="btn" id="analyzeBtn" disabled>
+                    <i class="fas fa-microscope"></i> Analyze Audio
+                </button>
+
+                <div class="progress-bar" id="progressBar" style="display: none;">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2><i class="fas fa-chart-bar"></i> Analysis Results</h2>
+                <div id="resultsContent">
+                    <p style="color: #666; text-align: center; padding: 40px;">
+                        Upload an audio file to see pest detection results
+                    </p>
+                </div>
+                
+                <div class="results-area" id="resultsArea">
+                    <h3>Detection Results:</h3>
+                    <div id="detectionResults"></div>
+                    
+                    <h3 style="margin-top: 20px;">Confidence Scores:</h3>
+                    <div id="confidenceScores"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h3>AI-Powered Detection</h3>
+                <p>Advanced machine learning algorithms trained on extensive pest audio datasets</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">
+                    <i class="fas fa-bug"></i>
+                </div>
+                <h3>Multi-Species Classification</h3>
+                <p>Identifies various pest species including insects, rodents, and other agricultural threats</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h3>Real-time Analysis</h3>
+                <p>Fast processing and immediate results for quick pest identification and response</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Detailed Analytics</h3>
+                <p>Comprehensive analysis with confidence scores and detection probability metrics</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const audioFile = document.getElementById('audioFile');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const resultsArea = document.getElementById('resultsArea');
+        const detectionResults = document.getElementById('detectionResults');
+        const confidenceScores = document.getElementById('confidenceScores');
+
+        // File upload handling
+        uploadArea.addEventListener('click', () => audioFile.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+
+        audioFile.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            if (!file.type.startsWith('audio/')) {
+                alert('Please select an audio file');
+                return;
+            }
+
+            fileName.textContent = `Name: ${file.name}`;
+            fileSize.textContent = `Size: ${(file.size / 1024 / 1024).toFixed(2)} MB`;
+            
+            const url = URL.createObjectURL(file);
+            audioPlayer.src = url;
+            audioPlayer.style.display = 'block';
+            
+            fileInfo.style.display = 'block';
+            analyzeBtn.disabled = false;
+        }
+
+        // Analysis simulation
+        analyzeBtn.addEventListener('click', () => {
+            analyzeBtn.disabled = true;
+            progressBar.style.display = 'block';
+            resultsArea.classList.remove('show');
+            
+            // Simulate analysis progress
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    showResults();
+                }
+                progressFill.style.width = progress + '%';
+            }, 200);
+        });
+
+        function showResults() {
+            // Simulate detection results
+            const pests = [
+                { name: 'Aphids', confidence: 87.3, detected: true },
+                { name: 'Thrips', confidence: 23.1, detected: false },
+                { name: 'Whiteflies', confidence: 45.7, detected: false },
+                { name: 'Spider Mites', confidence: 12.4, detected: false },
+                { name: 'Fruit Flies', confidence: 78.9, detected: true }
+            ];
+
+            detectionResults.innerHTML = '';
+            confidenceScores.innerHTML = '';
+
+            pests.forEach(pest => {
+                const resultDiv = document.createElement('div');
+                resultDiv.style.cssText = `
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 10px;
+                    margin: 5px 0;
+                    background: ${pest.detected ? '#e8f5e8' : '#f5f5f5'};
+                    border-radius: 5px;
+                    border-left: 4px solid ${pest.detected ? '#4caf50' : '#ccc'};
+                `;
+                
+                resultDiv.innerHTML = `
+                    <span><strong>${pest.name}</strong></span>
+                    <span style="color: ${pest.detected ? '#4caf50' : '#666'};">
+                        ${pest.detected ? '✓ Detected' : '✗ Not Detected'}
+                    </span>
+                `;
+                detectionResults.appendChild(resultDiv);
+
+                const confidenceDiv = document.createElement('div');
+                confidenceDiv.style.cssText = `
+                    margin: 10px 0;
+                    padding: 10px;
+                    background: white;
+                    border-radius: 5px;
+                `;
+                
+                confidenceDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span>${pest.name}</span>
+                        <span><strong>${pest.confidence}%</strong></span>
+                    </div>
+                    <div style="width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px;">
+                        <div style="width: ${pest.confidence}%; height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px;"></div>
+                    </div>
+                `;
+                confidenceScores.appendChild(confidenceDiv);
+            });
+
+            setTimeout(() => {
+                progressBar.style.display = 'none';
+                resultsArea.classList.add('show');
+                analyzeBtn.disabled = false;
+                progressFill.style.width = '0%';
+            }, 500);
+        }
+    </script>
+</body>
+</html>
